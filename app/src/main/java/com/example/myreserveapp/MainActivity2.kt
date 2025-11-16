@@ -1,10 +1,24 @@
 package com.example.myreserveapp
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.myreserveapp.calendar.DayViewContainer
+import com.kizitonwose.calendar.core.CalendarDay
+import com.kizitonwose.calendar.core.DayPosition
+import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
+import com.kizitonwose.calendar.view.CalendarView
+import com.kizitonwose.calendar.view.MonthDayBinder
+import com.kizitonwose.calendar.view.ViewContainer
+import java.time.LocalDate
+import java.time.YearMonth
+
+
 
 class MainActivity2 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,5 +30,35 @@ class MainActivity2 : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        val calendarView = findViewById<CalendarView>(R.id.exFiveCalendar)
+
+        calendarView.dayBinder = object : MonthDayBinder<DayViewContainer> {
+//            // Called only when a new container is needed.
+//            override fun create(view: View) = DayViewContainer(view)
+//
+//            // Called every time we need to reuse a container.
+//            override fun bind(container: DayViewContainer, data: CalendarDay) {
+//                container.textView.text = data.date.dayOfMonth.toString()
+//            }
+            override fun create(view: View) = DayViewContainer(view)
+            override fun bind(container: DayViewContainer, data: CalendarDay) {
+                container.textView.text = data.date.dayOfMonth.toString()
+                if (data.position == DayPosition.MonthDate) {
+                    container.textView.setTextColor(Color.BLACK)
+                } else {
+                    container.textView.setTextColor(Color.GRAY)
+                }
+            }
+
+
+
+        }
+        val currentMonth = YearMonth.now()
+        val startMonth = currentMonth // Adjust as needed
+        val endMonth = currentMonth.plusMonths(100) // Adjust as needed
+        val firstDayOfWeek = firstDayOfWeekFromLocale() // Available from the library
+        calendarView.setup(startMonth, endMonth, firstDayOfWeek)
+        calendarView.scrollToMonth(currentMonth)
     }
+
 }
