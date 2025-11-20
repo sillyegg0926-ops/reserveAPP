@@ -13,11 +13,12 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
-//import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.myreserveapp.calendar.DayViewContainer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.kizitonwose.calendar.core.CalendarDay
@@ -128,7 +129,7 @@ class MainActivity2 : AppCompatActivity() {
     private fun onDayClick(data: CalendarDay) {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
         val formattedDate = data.date.format(dateFormatter)
-        Toast.makeText(this, "Selected date: $formattedDate", Toast.LENGTH_SHORT).show()
+        showSnackbar("已點選日期 : $formattedDate。", Snackbar.LENGTH_LONG)
         showCustomAlertDialog(formattedDate)
 
         //        下拉選單時段
@@ -162,6 +163,11 @@ class MainActivity2 : AppCompatActivity() {
 
 
      }
+
+    private fun showSnackbar(message: String, duration: Int) {
+        val rootView = findViewById<android.view.View>(R.id.main)
+        Snackbar.make(rootView, message, duration).show()
+    }
 
 
 
