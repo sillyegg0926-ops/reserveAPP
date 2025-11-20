@@ -10,6 +10,19 @@
     <string name="Saturday">六</string>
 
 
+    <string-array name="simple_items">
+        <item>項目 1</item>
+        <item>項目 2</item>
+        <item>項目 3</item>
+        <item>項目 4</item>
+        <item>項目 5</item>
+        <item>項目 6</item>
+        <item>項目 7</item>
+        <item>項目 8</item>
+        <!-- 你可以根據需要修改或增加更多項目 -->
+    </string-array>
+
+
 
 
 </resources>

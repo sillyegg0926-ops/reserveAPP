@@ -6,15 +6,18 @@ import com.kizitonwose.calendar.view.ViewContainer
 import com.example.myreserveapp.R
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
+import com.kizitonwose.calendar.view.CalendarView
 import com.kizitonwose.calendar.view.MonthDayBinder
 import java.time.LocalDate
 
 
-private val DayViewContainer.calendarView: Any
+//private val DayViewContainer.calendarView: Any
 private var selectedDate: LocalDate? = null
 
 class DayViewContainer(view: View) : ViewContainer(view) {
     val textView = view.findViewById<TextView>(R.id.calendarDayText)
+
+    val calendarView = view.findViewById<CalendarView>(R.id.calendarView)
     lateinit var day: CalendarDay
 
     // With ViewBinding
