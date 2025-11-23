@@ -156,6 +156,16 @@ class MainActivity2 : AppCompatActivity() {
 
          dialogTitle.text = formattedDate
          dialogMessage.text = "請選擇時段"
+         dialogButton.text = "確定"
+
+         dialogButton.setOnClickListener {
+             val selectedItem = autoCompleteTextView.text.toString()
+             if (selectedItem.isNotEmpty()) {
+                 showSnackbar("已選擇日期 $selectedItem", Toast.LENGTH_SHORT)
+             }
+
+
+         }
 
          val alertDialog = builder.create()
          alertDialog.show()
