@@ -20,6 +20,30 @@
             android:layout_height="?attr/actionBarSize"
             app:title="預約日期" />
     </com.google.android.material.appbar.AppBarLayout>
+    <View
+        android:id="@+id/lineTop2"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="18dp"
+        android:background="@color/blue_800"
+        app:layout_constraintTop_toBottomOf="@id/exFiveAppBarLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/monthYearText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="40sp"
+        android:textColor="@color/black"
+        tools:text="2025年 11月"
+        app:layout_constraintTop_toBottomOf="@id/lineTop2"
+        app:layout_constraintBottom_toTopOf="@id/lineTop"/>
+
+
+
 
     <View
         android:id="@+id/lineTop"
@@ -28,7 +52,7 @@
         android:layout_gravity="bottom"
         android:layout_marginBottom="18dp"
         android:background="@color/blue_800"
-        app:layout_constraintTop_toBottomOf="@id/exFiveAppBarLayout"
+        app:layout_constraintTop_toBottomOf="@id/monthYearText"
         app:layout_constraintStart_toStartOf="parent"
         />
 
@@ -146,17 +170,31 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
+        app:layout_constraintGuide_end="365dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/my_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="@id/guideline_top"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/item_view"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guideline_top"
+        app:layout_constraintVertical_bias="1.0"
+        tools:listitem="@layout/item_view" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/FAB"
+        style="?attr/floatingActionButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+
+        app:srcCompat="@drawable/baseline_add_24"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         />
 
 

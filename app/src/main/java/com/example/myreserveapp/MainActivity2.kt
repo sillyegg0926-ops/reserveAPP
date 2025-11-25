@@ -16,20 +16,28 @@ import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import com.example.myreserveapp.calendar.DayViewContainer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
+import com.kizitonwose.calendar.core.atStartOfMonth
+import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.view.CalendarView
 import com.kizitonwose.calendar.view.MonthDayBinder
 import com.kizitonwose.calendar.view.ViewContainer
+import com.kizitonwose.calendar.view.WeekCalendarView
+import com.kizitonwose.calendar.view.YearCalendarView
 import java.time.LocalDate
+import java.time.Year
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 private var selectedDate: LocalDate? = null
@@ -45,78 +53,8 @@ class MainActivity2 : AppCompatActivity() {
             insets
         }
         val calendarView = findViewById<CalendarView>(R.id.exFiveCalendar)
+        val monthYearText = findViewById<TextView>(R.id.monthYearText)
 
-        
-
-        calendarView.dayBinder = object : MonthDayBinder<DayViewContainer> {
-//            // Called only when a new container is needed.
-//            override fun create(view: View) = DayViewContainer(view)
-//
-//            // Called every time we need to reuse a container.
-//            override fun bind(container: DayViewContainer, data: CalendarDay) {
-//                container.textView.text = data.date.dayOfMonth.toString()
-//            }
-            override fun create(view: View) = DayViewContainer(view)
-            override fun bind(container: DayViewContainer, data: CalendarDay) {
-
-//                val textView = container.textView
-//                textView.text = data.date.dayOfMonth.toString()
-//                if (data.position == DayPosition.MonthDate) {
-//                    textView.visibility = View.VISIBLE
-//                    if (data.date == selectedDate) {
-//                        textView.setTextColor(Color.BLUE)
-//                    } else {
-//                        textView.setTextColor(Color.BLACK)
-//                        textView.background = null
-//                    }
-//                } else {
-//                    textView.visibility = View.INVISIBLE
-//
-//                }
-
-                
-
-                val textView = container.textView
-                textView.text = data.date.dayOfMonth.toString()
-                container.day = data
-                
-                container.view.setOnClickListener {
-                    onDayClick(data)
-
-
-                }
-
-////                 Any other binding logic
-//                if (day.position == DayPosition.MonthDate) {
-//                    // Show the month dates. Remember that views are reused!
-//                    textView.visibility = View.VISIBLE
-//                    if (day.date == selectedDate) {
-//                        // If this is the selected date, show a round background and change the text color.
-//                        textView.setTextColor(Color.BLUE)
-//
-//                    } else {
-//                        // If this is NOT the selected date, remove the background and reset the text color.
-//                        textView.setTextColor(Color.BLACK)
-//                        textView.background = null
-//                    }
-//                } else {
-//                    // Hide in and out dates
-//                    textView.visibility = View.INVISIBLE
-//                }
-            }
-        }
-//                container.textView.text = data.date.dayOfMonth.toString()
-//                if (data.position == DayPosition.MonthDate) {
-//                    container.textView.setTextColor(Color.BLACK)
-//                } else {
-//                    container.textView.setTextColor(Color.GRAY)
-//                }
-
-//            }
-
-
-
-//        }
         val currentMonth = YearMonth.now()
         val startMonth = currentMonth // Adjust as needed
         val endMonth = currentMonth.plusMonths(100) // Adjust as needed
@@ -124,13 +62,62 @@ class MainActivity2 : AppCompatActivity() {
         calendarView.setup(startMonth, endMonth, firstDayOfWeek)
         calendarView.scrollToMonth(currentMonth)
 
+
+
+
+        // ... 您的日曆初始化代碼之後
+        calendarView.monthScrollListener = { calendarMonth ->
+            // 1. 獲取當前可見月份的 YearMonth 物件
+            val yearMonth = calendarMonth.yearMonth
+
+            // 2. 格式化年和月 (使用所需的 Locale)
+            val monthText = yearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+            val yearText = yearMonth.year.toString()
+
+            // 3. 更新 TextView
+            monthYearText.text = "$yearText 年 $monthText"
+        }
+
+
+
+
+
+
+
+        calendarView.dayBinder = object : MonthDayBinder<DayViewContainer> {
+            override fun create(view: View) = DayViewContainer(view)
+            override fun bind(container: DayViewContainer, data: CalendarDay) {
+
+                container.textView.text = data.date.dayOfMonth.toString()
+                if (data.position == DayPosition.MonthDate) {
+                    container.textView.setTextColor(Color.BLACK)
+                } else {
+                    container.textView.setTextColor(Color.GRAY)
+                }
+
+                val textView = container.textView
+                textView.text = data.date.dayOfMonth.toString()
+                container.day = data
+
+                container.view.setOnClickListener {
+                    onDayClick(data)
+                }
+
+            }
+        }
+
+
     }
 
     private fun onDayClick(data: CalendarDay) {
+        val fab = findViewById<FloatingActionButton>(R.id.FAB)
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
         val formattedDate = data.date.format(dateFormatter)
         showSnackbar("已點選日期 : $formattedDate。", Snackbar.LENGTH_LONG)
-        showCustomAlertDialog(formattedDate)
+//        showCustomAlertDialog(formattedDate)
+        fab.setOnClickListener {
+            showCustomAlertDialog(formattedDate)
+        }
 
         //        下拉選單時段
     }
@@ -139,6 +126,9 @@ class MainActivity2 : AppCompatActivity() {
         val builder = MaterialAlertDialogBuilder(this)
         val inflater = LayoutInflater.from(this)
         val dialogView = inflater.inflate(R.layout.textinput, null)
+
+
+
 
          builder.setView(dialogView)
 
@@ -178,28 +168,6 @@ class MainActivity2 : AppCompatActivity() {
         val rootView = findViewById<android.view.View>(R.id.main)
         Snackbar.make(rootView, message, duration).show()
     }
-
-
-
-
-
-
-
-
-
-
-
-// 假设在 Activity 中调用：
-// override fun onCreate(savedInstanceState: Bundle?) {
-//     super.onCreate(savedInstanceState)
-//     setContentView(R.layout.activity_main)
-//
-//     findViewById<Button>(R.id.my_button).setOnClickListener {
-//         showCustomAlertDialog(this) // 传递当前的 Activity 实例作为 Context
-//     }
-
-
-
 }
 
 

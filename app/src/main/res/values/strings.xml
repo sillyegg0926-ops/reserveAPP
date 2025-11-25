@@ -8,6 +8,11 @@
     <string name="Thursday">四</string>
     <string name="Friday">五</string>
     <string name="Saturday">六</string>
+    <string name="years">年</string>
+    <string name="months">月</string>
+    <string name="days">日</string>
+
+
 
 
     <string-array name="simple_items">
