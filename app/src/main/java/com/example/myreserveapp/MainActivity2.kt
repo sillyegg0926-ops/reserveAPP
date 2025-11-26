@@ -2,6 +2,7 @@ package com.example.myreserveapp
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
@@ -40,7 +41,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
-private var selectedDate: LocalDate? = null
+private val selectedDates = mutableSetOf<LocalDate>()
+private val today = LocalDate.now()
 
 class MainActivity2 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,14 +81,10 @@ class MainActivity2 : AppCompatActivity() {
         }
 
 
-
-
-
-
-
         calendarView.dayBinder = object : MonthDayBinder<DayViewContainer> {
             override fun create(view: View) = DayViewContainer(view)
             override fun bind(container: DayViewContainer, data: CalendarDay) {
+                bindDate(data.date, container.textView, data.position == DayPosition.MonthDate)
 
                 container.textView.text = data.date.dayOfMonth.toString()
                 if (data.position == DayPosition.MonthDate) {
@@ -101,9 +99,41 @@ class MainActivity2 : AppCompatActivity() {
 
                 container.view.setOnClickListener {
                     onDayClick(data)
+                    val clickedDate = container.day.date
+                    val oldSelectedDate = selectedDates.firstOrNull() // 取得舊的選中日期
+
+                    // 1. 更新 selectedDates 集合
+                    selectedDates.clear()
+                    selectedDates.add(clickedDate)
+
+                    // 2. 通知舊日期重繪（移除紅框）
+                    if (oldSelectedDate != null) {
+                        calendarView.notifyDateChanged(oldSelectedDate)
+                    }
+
+                        // 3. 通知新日期重繪（加上紅框）
+                        calendarView.notifyDateChanged(clickedDate)
+
                 }
 
+
             }
+            private fun bindDate(date: LocalDate, textView: TextView, isSelectable: Boolean) {
+                textView.text = date.dayOfMonth.toString()
+                if (isSelectable) {
+                    when {
+                        selectedDates.contains(date) -> {
+                            textView.setBackgroundResource(R.drawable.shape_rectangle)
+                        }
+                        today == date -> {
+                            textView.setBackgroundResource(R.drawable.shape_ring)
+                        }
+
+                    }
+                }
+            }   //當天日期標示
+
+
         }
 
 

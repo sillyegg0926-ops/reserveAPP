@@ -17,7 +17,7 @@ private var selectedDate: LocalDate? = null
 class DayViewContainer(view: View) : ViewContainer(view) {
     val textView = view.findViewById<TextView>(R.id.calendarDayText)
 
-    val calendarView = view.findViewById<CalendarView>(R.id.calendarView)
+//    val calendarView = view.findViewById<CalendarView>(R.id.calendarView)
     lateinit var day: CalendarDay
 
     // With ViewBinding
