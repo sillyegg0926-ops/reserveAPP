@@ -41,8 +41,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
-private val selectedDates = mutableSetOf<LocalDate>()
+private var selectedDates = mutableSetOf<LocalDate>()
 private val today = LocalDate.now()
+private lateinit var calendarView: CalendarView
 
 class MainActivity2 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,9 +54,11 @@ class MainActivity2 : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+
         }
-        val calendarView = findViewById<CalendarView>(R.id.exFiveCalendar)
+        calendarView = findViewById<CalendarView>(R.id.exFiveCalendar)
         val monthYearText = findViewById<TextView>(R.id.monthYearText)
+
 
         val currentMonth = YearMonth.now()
         val startMonth = currentMonth // Adjust as needed
@@ -86,6 +89,7 @@ class MainActivity2 : AppCompatActivity() {
             override fun bind(container: DayViewContainer, data: CalendarDay) {
                 bindDate(data.date, container.textView, data.position == DayPosition.MonthDate)
 
+
                 container.textView.text = data.date.dayOfMonth.toString()
                 if (data.position == DayPosition.MonthDate) {
                     container.textView.setTextColor(Color.BLACK)
@@ -97,28 +101,15 @@ class MainActivity2 : AppCompatActivity() {
                 textView.text = data.date.dayOfMonth.toString()
                 container.day = data
 
+
+
                 container.view.setOnClickListener {
                     onDayClick(data)
-                    val clickedDate = container.day.date
-                    val oldSelectedDate = selectedDates.firstOrNull() // 取得舊的選中日期
-
-                    // 1. 更新 selectedDates 集合
-                    selectedDates.clear()
-                    selectedDates.add(clickedDate)
-
-                    // 2. 通知舊日期重繪（移除紅框）
-                    if (oldSelectedDate != null) {
-                        calendarView.notifyDateChanged(oldSelectedDate)
-                    }
-
-                        // 3. 通知新日期重繪（加上紅框）
-                        calendarView.notifyDateChanged(clickedDate)
-
-                }
+                   }
 
 
             }
-            private fun bindDate(date: LocalDate, textView: TextView, isSelectable: Boolean) {
+            private fun bindDate(date: LocalDate, textView: TextView, isSelectable: Boolean ) {
                 textView.text = date.dayOfMonth.toString()
                 if (isSelectable) {
                     when {
@@ -129,7 +120,9 @@ class MainActivity2 : AppCompatActivity() {
                             textView.setBackgroundResource(R.drawable.shape_ring)
                         }
 
+
                     }
+
                 }
             }   //當天日期標示
 
@@ -140,19 +133,59 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     private fun onDayClick(data: CalendarDay) {
+
+
+//        showCustomAlertDialog(formattedDate)
+        val clickedDate = data.date
+        val oldSelectedDate = selectedDates.firstOrNull() // 取得舊的選中日期
+
+        // 1. 更新 selectedDates 集合
+        if (selectedDates == clickedDate ) {
+            selectedDates = mutableSetOf()
+        } else {
+            selectedDates = mutableSetOf(clickedDate)
+        }
+
+        // 2. 通知舊日期重繪（移除紅框）
+
+        if (oldSelectedDate != null && oldSelectedDate != clickedDate) {
+            calendarView.notifyDateChanged(oldSelectedDate)
+        }
+
+        // 3. 通知新日期重繪（加上紅框）
+        calendarView.notifyDateChanged(clickedDate)
+
+        clickFab(data)
+
+    }
+
+    private fun clickFab( data: CalendarDay) {
         val fab = findViewById<FloatingActionButton>(R.id.FAB)
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
         val formattedDate = data.date.format(dateFormatter)
         showSnackbar("已點選日期 : $formattedDate。", Snackbar.LENGTH_LONG)
-//        showCustomAlertDialog(formattedDate)
-        fab.setOnClickListener {
-            showCustomAlertDialog(formattedDate)
+
+        if (data == today) {
+            fab == showCustomAlertDialog(data.toString())
         }
-
-        //        下拉選單時段
+        if (formattedDate != null) {
+            fab.setOnClickListener {
+                showCustomAlertDialog(formattedDate)
+            }
+        }
     }
+//
 
-     private fun showCustomAlertDialog(formattedDate: String) {
+
+
+
+
+//        fab.setOnClickListener {
+//            showCustomAlertDialog(formattedDate)
+//        }
+
+
+     private fun showCustomAlertDialog(clickFab: String) {
         val builder = MaterialAlertDialogBuilder(this)
         val inflater = LayoutInflater.from(this)
         val dialogView = inflater.inflate(R.layout.textinput, null)
@@ -174,7 +207,7 @@ class MainActivity2 : AppCompatActivity() {
          val dialogMessage = dialogView.findViewById<TextView>(R.id.time)
          val dialogButton = dialogView.findViewById<Button>(R.id.btnDialogConfirm)
 
-         dialogTitle.text = formattedDate
+         dialogTitle.text = clickFab
          dialogMessage.text = "請選擇時段"
          dialogButton.text = "確定"
 
