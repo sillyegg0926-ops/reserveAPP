@@ -165,12 +165,23 @@
 <!--        app:layout_constraintTop_toBottomOf="@id/lineBelow"-->
 <!--        tools:layout_editor_absoluteX="0dp" />-->
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_top"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_end="365dp" />
+    <View
+        android:id="@+id/lineDay"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="18dp"
+        android:background="#10E2CB"
+        app:layout_constraintTop_toBottomOf="@id/exFiveCalendar"
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
+<!--    <androidx.constraintlayout.widget.Guideline-->
+<!--        android:id="@+id/guideline_top"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        app:layout_constraintGuide_end="365dp" />-->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/my_recycler_view"
@@ -180,7 +191,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guideline_top"
+        app:layout_constraintTop_toBottomOf="@id/lineDay"
         app:layout_constraintVertical_bias="1.0"
         tools:listitem="@layout/item_view" />
 
