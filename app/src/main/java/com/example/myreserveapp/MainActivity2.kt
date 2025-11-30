@@ -131,11 +131,11 @@ class MainActivity2 : AppCompatActivity() {
                 if (isSelectable) {
                     when {
                         selectedDates.contains(date) -> {
-                            textView.setBackgroundResource(R.drawable.shape_rectangle)
+                            textView.setBackgroundResource(R.drawable.shape_ring)
                         }
 
                         today == date -> {
-                            textView.setBackgroundResource(R.drawable.shape_ring)
+                            textView.setBackgroundResource(R.drawable.shape_rectangle)
                         }
 
 
