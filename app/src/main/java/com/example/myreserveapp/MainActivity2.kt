@@ -88,7 +88,10 @@ class MainActivity2 : AppCompatActivity() {
         myRecyclerView.layoutManager = LinearLayoutManager(this)
 
         // 3. 設定 Adapter (連接資料和列表項目視圖)
-        val initialAdapter = ReservationAdapter(emptyList())
+        // 傳入長按監聽器
+        val initialAdapter = ReservationAdapter(emptyList()) { itemContent ->
+            showEditOrDeleteDialog(itemContent)
+        }
         myRecyclerView.adapter = initialAdapter
         adapter = initialAdapter
 
@@ -175,6 +178,101 @@ class MainActivity2 : AppCompatActivity() {
         } else {
             updateRecyclerView(formattedDate)
         }
+    }
+
+    private fun showEditOrDeleteDialog(itemContent: String) {
+        // 解析 itemContent 以獲取時段和日期
+        // itemContent 格式範例："預約時段 09:00~10.00 預約人數 2 人" 或 "預約時段 09:00~10.00 預約人數 1 人"
+        // 需要從當前顯示的日期 (selectedDate 或 today) 和時段來定位 Reservation 物件
+
+        val currentDate = selectedDate ?: LocalDate.now()
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val dateString = currentDate.format(dateFormatter)
+
+        // 簡單的字串解析 (根據您的格式)
+        val parts = itemContent.split(" ")
+        val timeslot = parts.getOrNull(1) ?: return // 取得時段，假設是第二個元素
+
+        val options = arrayOf("修改人數", "刪除預約")
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("管理預約")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> { // 修改人數
+                        showEditCountDialog(dateString, timeslot)
+                    }
+                    1 -> { // 刪除預約
+                        deleteReservation(dateString, timeslot)
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun showEditCountDialog(dateString: String, timeslot: String) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.textinput, null)
+        // 這裡重用 textinput layout，但我們只需要一個輸入框來輸入人數，或者您可以創建一個新的 layout
+        // 為了簡化，這裡我們動態調整一下
+        val autoCompleteTextView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.auto_complete_menu)
+        val dialogTitle = dialogView.findViewById<TextView>(R.id.date)
+        val dialogMessage = dialogView.findViewById<TextView>(R.id.time)
+        val dialogButton = dialogView.findViewById<Button>(R.id.btnDialogConfirm)
+
+        dialogTitle.text = "修改人數"
+        dialogMessage.text = "$dateString $timeslot"
+        
+        // 將 AutoCompleteTextView 改為純數字輸入 (雖然它是 AutoCompleteTextView，但也可以當 EditText 用)
+        autoCompleteTextView.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        autoCompleteTextView.hint = "請輸入新的人數"
+        autoCompleteTextView.setAdapter(null) // 移除下拉選單
+
+        // 找出目前的人數
+        val currentCount = allReservations.count { it.date == dateString && it.timeslot == timeslot }
+        autoCompleteTextView.setText(currentCount.toString())
+
+        val builder = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+
+        val alertDialog = builder.create()
+        alertDialog.show()
+
+        dialogButton.setOnClickListener {
+            val newCountStr = autoCompleteTextView.text.toString()
+            val newCount = newCountStr.toIntOrNull()
+
+            if (newCount != null && newCount > 0) {
+                // 更新人數邏輯：
+                // 1. 移除該時段的所有舊預約
+                allReservations.removeAll { it.date == dateString && it.timeslot == timeslot }
+                
+                // 2. 新增 newCount 筆預約
+                for (i in 1..newCount) {
+                    allReservations.add(Reservation(dateString, timeslot, 1, 1))
+                }
+                
+                saveReservations()
+                updateRecyclerView(dateString)
+                showSnackbar("已更新人數為 $newCount", Toast.LENGTH_SHORT)
+                alertDialog.dismiss()
+            } else {
+                showSnackbar("請輸入有效的人數", Toast.LENGTH_SHORT)
+            }
+        }
+    }
+
+    private fun deleteReservation(dateString: String, timeslot: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("刪除預約")
+            .setMessage("確定要刪除 $dateString $timeslot 的所有預約嗎？")
+            .setPositiveButton("刪除") { _, _ ->
+                allReservations.removeAll { it.date == dateString && it.timeslot == timeslot }
+                saveReservations()
+                updateRecyclerView(dateString)
+                showSnackbar("已刪除預約", Toast.LENGTH_SHORT)
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     private fun showCustomAlertDialog() {
@@ -266,7 +364,9 @@ class MainActivity2 : AppCompatActivity() {
         }
 
         if (adapter == null) {
-            val newAdapter = ReservationAdapter(displayList)
+            val newAdapter = ReservationAdapter(displayList) { itemContent ->
+                showEditOrDeleteDialog(itemContent)
+            }
             recyclerView.adapter = newAdapter
             adapter = newAdapter
         } else {
