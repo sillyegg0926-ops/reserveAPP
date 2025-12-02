@@ -58,6 +58,8 @@ class MainActivity2 : AppCompatActivity() {
     private val allReservations = mutableListOf<Reservation>()
 
     private var mDate: CalendarDay? = null
+    private lateinit var recyclerView: RecyclerView
+    private var adapter: ReservationAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,7 +88,10 @@ class MainActivity2 : AppCompatActivity() {
         myRecyclerView.layoutManager = LinearLayoutManager(this)
 
         // 3. 設定 Adapter (連接資料和列表項目視圖)
-        myRecyclerView.adapter = ReservationAdapter(allReservations)
+        val initialAdapter = ReservationAdapter(emptyList()) // 傳入 List<String>
+        myRecyclerView.adapter = initialAdapter
+        adapter = initialAdapter // V 將 Adapter 實例賦值給類別屬性
+//        myRecyclerView.adapter = ReservationAdapter(allReservations)
 
 
         val currentMonth = YearMonth.now()
@@ -129,34 +134,31 @@ class MainActivity2 : AppCompatActivity() {
                 val today = LocalDate.now()
                 val isToday = data.date == today
                 val isSelected = data.date == selectedDate
-
-
-
-                    when {
-                        isSelected && isToday -> {
-                            // 選中且是今天：藍色圓形背景 + 邊框
-                            container.textView.setBackgroundResource(R.drawable.shape)
+                when {
+                    isSelected && isToday -> {
+                        // 選中且是今天：藍色圓形背景 + 邊框
+                        container.textView.setBackgroundResource(R.drawable.shape)
 //                            container.textView.setTextColor(Color.WHITE)
-                        }
-
-                        isSelected -> {
-                            // 只選中：藍色圓形背景
-                            container.textView.setBackgroundResource(R.drawable.shape_ring)
-//                            container.textView.setTextColor(Color.BLACK)
-                        }
-
-                        isToday -> {
-                            // 只是今天：邊框
-                            container.textView.setBackgroundResource(R.drawable.shape_rectangle)
-//                            container.textView.setTextColor(Color.BLACK)
-                        }
-
-                        else -> {
-                            // 一般日期
-                            container.textView.background = null
-//                            container.textView.setTextColor(Color.BLACK)
-                        }
                     }
+
+                    isSelected -> {
+                        // 只選中：藍色圓形背景
+                        container.textView.setBackgroundResource(R.drawable.shape_ring)
+//                            container.textView.setTextColor(Color.BLACK)
+                    }
+
+                    isToday -> {
+                        // 只是今天：邊框
+                        container.textView.setBackgroundResource(R.drawable.shape_rectangle)
+//                            container.textView.setTextColor(Color.BLACK)
+                    }
+
+                    else -> {
+                        // 一般日期
+                        container.textView.background = null
+//                            container.textView.setTextColor(Color.BLACK)
+                    }
+                }
 
                 container.view.setOnClickListener {
                     mDate = data
@@ -195,6 +197,12 @@ class MainActivity2 : AppCompatActivity() {
         calendarView?.notifyDateChanged(clickedDate)
         if (oldSelectedDate != null && oldSelectedDate != clickedDate) {
             calendarView?.notifyDateChanged(oldSelectedDate)
+
+            val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val formattedDate = selectedDate?.format(dateFormatter) ?: ""
+
+            // 呼叫更新函式：傳入新的選中日期字串
+            updateRecyclerView(formattedDate)
         }
 
 
@@ -279,7 +287,18 @@ class MainActivity2 : AppCompatActivity() {
 
             if (selectedTimeSlot.isNotEmpty()) {
                 // 1. 呼叫新的函式來更新 RecyclerView
-                updateMyRecyclerView(selectedTimeSlot)
+                val newReservation = Reservation(
+                    date = selectedDate, // 日期字串
+                    timeslot = selectedTimeSlot, // 時段字串 (e.g., "09:00~10.00")
+                    currentCount = 1,
+                    maxCount = 1 // 根據您的 Reservation 類別調整
+                )
+                allReservations.add(newReservation)
+
+                // 1. 呼叫新的函式來更新 RecyclerView
+                // 這裡傳入日期字串即可，因為 updateRecyclerView 內部會從 allReservations 篩選。
+                updateRecyclerView(selectedDate)
+
 
                 // 2. 顯示 Snackbar
                 showSnackbar("已新增預約: $selectedDate $selectedTimeSlot", Toast.LENGTH_SHORT)
@@ -313,50 +332,49 @@ class MainActivity2 : AppCompatActivity() {
         Snackbar.make(rootView, message, duration).show()
     }
 
-    private fun updateMyRecyclerView(selectedTimeSlot: String) {
-        val adapter = myRecyclerView.adapter as? ReservationAdapter
+    private fun updateRecyclerView(selectedDate: String) {
+        // 1. 獲取當前選擇的日期
+        // 假設 selectedTimeslot 可能是 "2025-12-01 09:00-10:00"，我們只取日期部分
+//        val selectedDate = selectedTimeslot.split(" ").firstOrNull() ?: return
+        if (selectedDate.isEmpty()) {
+            adapter?.updateData(emptyList())
+            return
+        }
 
+        // 2. 過濾出當日預約 (確保 allReservations 已經載入且 Reservation 有 date 屬性)
+        val todayReservation = allReservations.filter {
+            it.date == selectedDate
+        }
 
-        if (adapter != null) {
-            // 1. 創建新的預約項目
-            val newReservation = Reservation(
-                timeSlot = "$selectedTimeSlot", // 結合日期和時段
-                currentCount = 0,
-                maxCount = 0
-            )
+        // 3. 分組與計數
+        val groupedReservations = todayReservation
+            .groupBy { it.timeslot } // 以時段分組
+            .map { (timeslot, list) ->
+                Pair(timeslot, list.size)
+            }
+            .sortedBy { it.first } // 依時段排序
 
-            // 2. 【關鍵】將新項目添加到累計列表
-            allReservations.add(newReservation)
+        // 4. 準備顯示用的列表 (List<String>)
+        val displayList = groupedReservations.map { (timeslot, count) ->
+            // 格式化顯示字串： "09:00-10:00 (x2)"
+            if (count > 1) {
+                "預約時段 $timeslot 預約人數 $count 人"
+            } else {
+                "預約時段 $timeslot 預約人數 1 人" // 只有一筆時，只顯示時段
+            }
+        }
 
-            // 3. 通知 Adapter 資料已更新
-            // 由於 Adapter 已經持有 allReservations 的引用，這裡只需要告訴它刷新
-            adapter.notifyDataSetChanged()
-
-            // 或者，如果您在 Adapter 中使用了 updateData 方法，則呼叫：
-            // adapter.updateData(allReservations)
+        // 5. 更新 Adapter
+        if (adapter == null) {
+            // 初始化新的 Adapter
+            val newAdapter = ReservationAdapter(displayList)
+            recyclerView.adapter = newAdapter
+            adapter = newAdapter
+        } else {
+            // 更新現有的 Adapter
+            adapter!!.updateData(displayList) // 使用 !! 斷言 adapter 不為 null
         }
     }
-
-//        if (adapter != null) {
-//            // 創建只包含選擇時段的新列表
-//            val displayData = listOf(
-//                Reservation(
-//                    timeSlot = "$selectedDate | $selectedTimeSlot",
-//                    currentCount = 0, // 這裡僅作顯示，所以人數用 0
-//                    maxCount = 0
-//                )
-//            )
-//            // 將日期作為一個額外的項目顯示 (可選)
-//            val dateItem = Reservation(
-//                timeSlot = "選擇日期: $selectedDate",
-//                currentCount = -1, // 使用特殊值標記為日期行
-//                maxCount = 0
-//            )
-//
-////             將日期和時段項目一起傳給 Adapter
-//            adapter.updateData(listOf(dateItem) + displayData)
-//        }
-//    }
 }
 
 
