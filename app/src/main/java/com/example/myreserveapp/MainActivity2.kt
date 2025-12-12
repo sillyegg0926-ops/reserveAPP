@@ -2,39 +2,27 @@ package com.example.myreserveapp
 
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.children
 import com.example.myreserveapp.calendar.DayViewContainer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
-import com.google.android.material.textfield.TextInputLayout
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
-import com.kizitonwose.calendar.core.atStartOfMonth
-import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.view.CalendarView
 import com.kizitonwose.calendar.view.MonthDayBinder
-import com.kizitonwose.calendar.view.ViewContainer
-import com.kizitonwose.calendar.view.WeekCalendarView
-import com.kizitonwose.calendar.view.YearCalendarView
 import java.time.LocalDate
-import java.time.Year
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -130,6 +118,10 @@ class MainActivity2 : AppCompatActivity() {
                 val today = LocalDate.now()
                 val isToday = data.date == today
                 val isSelected = data.date == selectedDate
+                val dateString = data.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                val hasReservation = allReservations.any { it.date == dateString }
+
+
                 when {
                     isSelected && isToday -> {
                         container.textView.setBackgroundResource(R.drawable.shape)
@@ -140,9 +132,13 @@ class MainActivity2 : AppCompatActivity() {
                     isToday -> {
                         container.textView.setBackgroundResource(R.drawable.shape_rectangle)
                     }
+                    hasReservation -> {
+                        container.textView.setBackgroundResource(R.drawable.shape_rectangle)
+                    }
                     else -> {
                         container.textView.background = null
                     }
+
                 }
 
                 container.view.setOnClickListener {
@@ -211,10 +207,10 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     private fun showEditCountDialog(dateString: String, timeslot: String) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.textinput, null)
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.revise, null)
         // 這裡重用 textinput layout，但我們只需要一個輸入框來輸入人數，或者您可以創建一個新的 layout
         // 為了簡化，這裡我們動態調整一下
-        val autoCompleteTextView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.auto_complete_menu)
+        val autoCompleteTextView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.auto_complete_menu_revise)
         val dialogTitle = dialogView.findViewById<TextView>(R.id.date)
         val dialogMessage = dialogView.findViewById<TextView>(R.id.time)
         val dialogButton = dialogView.findViewById<Button>(R.id.btnDialogConfirm)
@@ -270,6 +266,8 @@ class MainActivity2 : AppCompatActivity() {
                 saveReservations()
                 updateRecyclerView(dateString)
                 showSnackbar("已刪除預約", Toast.LENGTH_SHORT)
+                // 在新增預約或刪除預約後加入這行
+                calendarView.notifyCalendarChanged()
             }
             .setNegativeButton("取消", null)
             .show()
@@ -326,6 +324,8 @@ class MainActivity2 : AppCompatActivity() {
                 showSnackbar("已新增預約: $selectedDate $selectedTimeSlot", Toast.LENGTH_SHORT)
 
                 alertDialog.dismiss()
+                // 在新增預約或刪除預約後加入這行
+                calendarView.notifyCalendarChanged()
 
             } else {
                 showSnackbar("請選擇一個時段", Toast.LENGTH_SHORT)
