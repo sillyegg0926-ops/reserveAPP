@@ -21,6 +21,11 @@
             android:layout_height="?attr/actionBarSize"
             />
 
+
+
+
+
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <Button
@@ -33,5 +38,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnChangeBackground"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="更換背景"
+        android:textSize="10sp"
+        android:layout_margin="8dp"
+        app:icon="@drawable/outline_add_photo_alternate_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
