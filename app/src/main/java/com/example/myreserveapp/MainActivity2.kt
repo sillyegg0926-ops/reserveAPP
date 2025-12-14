@@ -1,5 +1,6 @@
 package com.example.myreserveapp
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -54,6 +55,12 @@ class MainActivity2 : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        val buttonStart = findViewById<Button>(R.id.btnChart)
+        buttonStart.setOnClickListener {
+            val intent = Intent(this, ChartActivity::class.java)
+            startActivity(intent)
         }
 
         // 載入已儲存的預約
@@ -133,7 +140,7 @@ class MainActivity2 : AppCompatActivity() {
                         container.textView.setBackgroundResource(R.drawable.shape_rectangle)
                     }
                     hasReservation -> {
-                        container.textView.setBackgroundResource(R.drawable.shape_rectangle)
+                        container.textView.setBackgroundResource(R.drawable.shape_line)
                     }
                     else -> {
                         container.textView.background = null
