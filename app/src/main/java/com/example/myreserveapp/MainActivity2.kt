@@ -3,6 +3,7 @@ package com.example.myreserveapp
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
@@ -31,6 +32,7 @@ import java.util.Locale
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myreserveapp.calendar.ReservationAdapter
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -46,6 +48,9 @@ class MainActivity2 : AppCompatActivity() {
     private var mDate: CalendarDay? = null
     private lateinit var recyclerView: RecyclerView
     private var adapter: ReservationAdapter? = null
+    
+    // Firestore 實例
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -382,6 +387,23 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     private fun saveReservations() {
+        // 更新 Firestore
+        // 注意：這裡我們將整個列表覆蓋到一個文檔，實際應用中建議按日期或單筆儲存
+        // 這裡為了保持與原本 SharedPreferences 邏輯一致，我們儲存整個列表
+        // 建議結構：Collection "reservations" -> Document "user_id_or_global" -> Field "data"
+        // 這裡簡化為 "all_reservations" 文檔
+        
+        val reservationData = mapOf("list" to allReservations)
+        db.collection("reservations").document("all_reservations")
+            .set(reservationData)
+            .addOnSuccessListener {
+                Log.d("Firestore", "Reservations saved successfully")
+            }
+            .addOnFailureListener { e ->
+                Log.w("Firestore", "Error saving reservations", e)
+            }
+            
+        // 同時保留本地儲存以防萬一
         val sharedPreferences = getSharedPreferences("reservations_prefs", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         val gson = Gson()
@@ -391,6 +413,42 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     private fun loadReservations() {
+        // 從 Firestore 讀取
+        db.collection("reservations").document("all_reservations")
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val dataList = document.get("list") as? List<Map<String, Any>>
+                    if (dataList != null) {
+                        allReservations.clear()
+                        // 轉換 Map 回 Reservation 物件
+                        for (item in dataList) {
+                             val date = item["date"] as? String ?: ""
+                             val timeslot = item["timeslot"] as? String ?: ""
+                             val currentCount = (item["currentCount"] as? Long)?.toInt() ?: 1
+                             val maxCount = (item["maxCount"] as? Long)?.toInt() ?: 1
+                             allReservations.add(Reservation(date, timeslot, currentCount, maxCount))
+                        }
+                        // 更新 UI
+                        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                        val dateToShow = selectedDate?.format(dateFormatter) ?: LocalDate.now().format(dateFormatter)
+                        updateRecyclerView(dateToShow)
+                        calendarView.notifyCalendarChanged()
+                    }
+                } else {
+                    Log.d("Firestore", "No such document")
+                    // 如果 Firestore 沒資料，嘗試從本地讀取
+                    loadLocalReservations()
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.d("Firestore", "get failed with ", exception)
+                // 讀取失敗，嘗試從本地讀取
+                loadLocalReservations()
+            }
+    }
+    
+    private fun loadLocalReservations() {
         val sharedPreferences = getSharedPreferences("reservations_prefs", MODE_PRIVATE)
         val gson = Gson()
         val json = sharedPreferences.getString("reservations_list", null)
@@ -399,6 +457,11 @@ class MainActivity2 : AppCompatActivity() {
             val savedReservations: MutableList<Reservation> = gson.fromJson(json, type)
             allReservations.clear()
             allReservations.addAll(savedReservations)
+            
+            val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val dateToShow = selectedDate?.format(dateFormatter) ?: LocalDate.now().format(dateFormatter)
+            updateRecyclerView(dateToShow)
+            calendarView.notifyCalendarChanged()
         }
     }
 }
