@@ -5,20 +5,22 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.HorizontalBarChart
-import com.github.mikephil.charting.components.XAxis // 可選：用於進階設定
-import com.github.mikephil.charting.charts.BarChart // 引入 BarChart
-import com.github.mikephil.charting.data.BarData // 引入 BarData
-import com.github.mikephil.charting.data.BarDataSet // 引入 BarDataSet
-import com.github.mikephil.charting.data.BarEntry // 引入 BarEntry
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-
+import com.google.firebase.firestore.FirebaseFirestore
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class ChartActivity : AppCompatActivity() {
+
+    private val db = FirebaseFirestore.getInstance()
+    private val allReservations = mutableListOf<Reservation>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -28,140 +30,151 @@ class ChartActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val chart = findViewById<BarChart>(R.id.chart)
-        val chart2 = findViewById<HorizontalBarChart>(R.id.chart2)
-        setupLineChart(chart)
-        setupLineChart2(chart2)
+        loadReservationsFromFirestore()
     }
-    private fun setupLineChart(chart: BarChart) {
-        // 1. 建立 Entry 物件列表 (資料點)
+
+    private fun loadReservationsFromFirestore() {
+        db.collection("reservations").document("all_reservations")
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val dataList = document.get("list") as? List<Map<String, Any>>
+                    if (dataList != null) {
+                        allReservations.clear()
+                        for (item in dataList) {
+                            val date = item["date"] as? String ?: ""
+                            val timeslot = item["timeslot"] as? String ?: ""
+                            val currentCount = (item["currentCount"] as? Long)?.toInt() ?: 1
+                            val maxCount = (item["maxCount"] as? Long)?.toInt() ?: 1
+                            if (date.isNotEmpty()) {
+                                allReservations.add(Reservation(date, timeslot, currentCount, maxCount))
+                            }
+                        }
+                    }
+                }
+                // Data loaded (or not), now setup the charts
+                val chart = findViewById<BarChart>(R.id.chart)
+                val chart2 = findViewById<HorizontalBarChart>(R.id.chart2)
+                setupMonthlyChart(chart)
+                setupYearlyChart(chart2)
+            }
+            .addOnFailureListener {
+                // On failure, setup with empty data to avoid crash
+                val chart = findViewById<BarChart>(R.id.chart)
+                val chart2 = findViewById<HorizontalBarChart>(R.id.chart2)
+                setupMonthlyChart(chart)
+                setupYearlyChart(chart2)
+            }
+    }
+
+    private fun setupMonthlyChart(chart: BarChart) {
+        val currentMonthDate = LocalDate.now()
+        val month = currentMonthDate.month
+        val year = currentMonthDate.year
+
+        // 1. 從資料庫資料產生 Entry
+        val dailyCounts = allReservations
+            .filter {
+                try {
+                    val reservationDate = LocalDate.parse(it.date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    reservationDate.month == month && reservationDate.year == year
+                } catch (e: Exception) { false }
+            }
+            .groupBy { LocalDate.parse(it.date, DateTimeFormatter.ofPattern("yyyy-MM-dd")).dayOfMonth }
+            .mapValues { it.value.size }
+
         val entries = ArrayList<BarEntry>()
-        entries.add(BarEntry(1f, 10f))
-        entries.add(BarEntry(2f, 15f))
-        entries.add(BarEntry(3f, 8f))
-        entries.add(BarEntry(4f, 12f))
-        entries.add(BarEntry(5f, 10f))
-        entries.add(BarEntry(6f, 10f))
-        entries.add(BarEntry(7f, 10f))
-        entries.add(BarEntry(8f, 10f))
-        entries.add(BarEntry(9f, 10f))
-        entries.add(BarEntry(10f, 10f))
-        entries.add(BarEntry(11f, 10f))
-        entries.add(BarEntry(12f, 15f))
-        entries.add(BarEntry(13f, 8f))
-        entries.add(BarEntry(14f, 12f))
-        entries.add(BarEntry(15f, 10f))
-        entries.add(BarEntry(16f, 10f))
-        entries.add(BarEntry(17f, 10f))
-        entries.add(BarEntry(18f, 10f))
-        entries.add(BarEntry(19f, 10f))
-        entries.add(BarEntry(20f, 10f))
-        entries.add(BarEntry(21f, 10f))
-        entries.add(BarEntry(22f, 15f))
-        entries.add(BarEntry(23f, 8f))
-        entries.add(BarEntry(24f, 12f))
-        entries.add(BarEntry(25f, 10f))
-        entries.add(BarEntry(26f, 10f))
-        entries.add(BarEntry(27f, 10f))
-        entries.add(BarEntry(28f, 10f))
-        entries.add(BarEntry(29f, 10f))
-        entries.add(BarEntry(30f, 10f))
-        entries.add(BarEntry(31f, 10f))
+        // Ensure entries for all days in the month to maintain axis length, even if count is 0
+        for (day in 1..currentMonthDate.lengthOfMonth()) {
+             val count = dailyCounts[day]?.toFloat() ?: 0f
+             // Only add if you want to show zero-value bars, otherwise, just use the dailyCounts loop
+             if (count > 0) {
+                 entries.add(BarEntry(day.toFloat(), count))
+             }
+        }
 
+        if (entries.isEmpty()) {
+            chart.data = null
+            chart.invalidate()
+            return
+        }
 
-        // 2. 從 Entry 建立 DataSet
+        // 2. 從 Entry 建立 DataSet (套用您的樣式)
         val dataSet = BarDataSet(entries, "當月預約人數統計")
-        // 您可以根據需要設定顏色和其他樣式...
-         dataSet.color = resources.getColor(R.color.blue_800)
-         dataSet.valueTextColor = resources.getColor(R.color.example_5_page_bg_color)
+        dataSet.color = resources.getColor(R.color.blue_800)
+        dataSet.valueTextColor = resources.getColor(R.color.example_5_page_bg_color)
 
-
-        // 3. 將 DataSet 放入 LineData 物件
+        // 3. 將 DataSet 放入 BarData 物件 (套用您的樣式)
         val barData = BarData(dataSet)
-        // 設定柱狀圖的寬度 (可選)
         barData.barWidth = 0.5f
 
-        // 4. 將資料設定給圖表並更新
+        // 4. 將資料設定給圖表並更新 (套用您的樣式)
         chart.data = barData
         chart.setFitBars(true) // 使柱狀圖適合X軸
+
+        // 將X軸標籤移至底部
+        val xAxis = chart.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.setDrawGridLines(false)
+        xAxis.granularity = 1f
+
         chart.invalidate() // 刷新圖表
     }
-    private fun setupLineChart2(chart: HorizontalBarChart) {
-        // 1. 建立 Entry 物件列表 (資料點)
-        val entries = ArrayList<BarEntry>()
-        entries.add(BarEntry(1f, 10f))
-        entries.add(BarEntry(2f, 15f))
-        entries.add(BarEntry(3f, 8f))
-        entries.add(BarEntry(4f, 12f))
-        entries.add(BarEntry(5f, 10f))
-        entries.add(BarEntry(6f, 10f))
-        entries.add(BarEntry(7f, 10f))
-        entries.add(BarEntry(8f, 10f))
-        entries.add(BarEntry(9f, 10f))
-        entries.add(BarEntry(10f, 10f))
-        entries.add(BarEntry(11f, 10f))
-        entries.add(BarEntry(12f, 10f))
 
-        // 2. 從 Entry 建立 DataSet
+    private fun setupYearlyChart(chart: HorizontalBarChart) {
+        val currentYear = LocalDate.now().year
+
+        // 1. 從資料庫資料產生 Entry
+        val monthlyCounts = allReservations
+            .filter {
+                try { LocalDate.parse(it.date, DateTimeFormatter.ofPattern("yyyy-MM-dd")).year == currentYear }
+                catch (e: Exception) { false }
+            }
+            .groupBy { LocalDate.parse(it.date, DateTimeFormatter.ofPattern("yyyy-MM-dd")).monthValue }
+            .mapValues { it.value.size }
+
+        val entries = ArrayList<BarEntry>()
+        for (month in 1..12) {
+            val count = monthlyCounts[month]?.toFloat() ?: 0f
+            entries.add(BarEntry(month.toFloat(), count))
+        }
+
+        // 2. 從 Entry 建立 DataSet (套用您的樣式)
         val dataSet = BarDataSet(entries, "整年預約人數統計")
-        // 您可以根據需要設定顏色和其他樣式...
         dataSet.color = resources.getColor(R.color.example_6_month_bg_color)
         dataSet.valueTextColor = resources.getColor(R.color.example_5_page_bg_color)
 
-
-        // 3. 將 DataSet 放入 LineData 物件
+        // 3. 將 DataSet 放入 BarData 物件 (套用您的樣式)
         val barData = BarData(dataSet)
-        // 設定柱狀圖的寬度 (可選)
         barData.barWidth = 0.3f
-        // 設定數值顯示在柱狀圖外側 (避免數值跟圖疊在一起)
         barData.setValueTextSize(10f)
 
         // 4. 將資料設定給圖表並更新
         chart.data = barData
 
-        // 5. [選用設定] 美化圖表與標籤
-
-        // 隱藏右側的 Y 軸，通常水平條狀圖只需要左側的 Y 軸
+        // 5. [選用設定] 美化圖表與標籤 (套用您的樣式)
         chart.axisRight.isEnabled = false
 
-        // 設定 X 軸的標籤（例如：產品名稱）
         val xAxis = chart.xAxis
-        val labels = arrayOf("", "一月", "二月", "三月", "四月", "五月", "六月",
-                            "七月", "八月", "九月", "十月", "十一月", "十二月")
+        val labels = arrayOf("", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月")
         xAxis.valueFormatter = IndexAxisValueFormatter(labels)
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.setLabelCount(12)
-        xAxis.setDrawGridLines(false) // 不顯示 X 軸網格線
-        xAxis.granularity = 1f // 設置最小間隔，確保顯示所有標籤
-        // 【關鍵】設定軸的最小值與最大值，確保第一個月和最後一個月不會被切掉
+        xAxis.setDrawGridLines(false)
+        xAxis.granularity = 1f
         xAxis.axisMinimum = 0f
         xAxis.axisMaximum = 13f
 
-        // --- Y 軸設定 (在水平圖中，這是水平的軸，顯示人數) ---
-
-        // 隱藏右側 Y 軸 (水平圖的上方)
         chart.axisRight.isEnabled = false
 
         val axisLeft = chart.axisLeft
-        // 設定最小值從 0 開始
         axisLeft.axisMinimum = 0f
-
-        // 為了讓這條軸的線更明顯 (可選)
         axisLeft.setDrawAxisLine(true)
         axisLeft.setDrawGridLines(true)
 
-
-        // --- 其他外觀設定 ---
-
-        // 【關鍵】增加圖表左側的額外邊距，確保 "十二月" 這種較長的文字不會被切掉
-        // 參數順序: Left, Top, Right, Bottom
         chart.setExtraOffsets(20f, 10f, 20f, 10f)
-
-        chart.setTouchEnabled(true) // 允許互動
-        chart.setPinchZoom(true) // 允許縮放
-//        chart.description.isEnabled = false // 隱藏描述文字
-//        chart.legend.isEnabled = false // 如果不需要圖例可以隱藏
-        // 讓柱狀圖自動適應高度
+        chart.setTouchEnabled(true)
+        chart.setPinchZoom(true)
         chart.setFitBars(true)
         chart.invalidate() // 刷新圖表
     }
