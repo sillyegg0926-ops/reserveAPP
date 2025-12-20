@@ -69,23 +69,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showChangeBackgroundDialog() {
-        val options = arrayOf(
-            "更換顏色 (紅)",
-            "更換顏色 (藍)",
-            "更換顏色 (綠)",
-            "從相簿選擇圖片",
-            "恢復預設"
-        )
+        // 1. 從 strings.xml 讀取顏色顯示名稱
+        val colorDisplayNames = resources.getStringArray(R.array.background_color_display_names)
+
+        // 2. 建立包含「選擇圖片」的完整選項列表
+        val options = colorDisplayNames + "從相簿選擇圖片" // 將圖片選項加到最後
 
         AlertDialog.Builder(this)
             .setTitle("選擇背景樣式")
             .setItems(options) { _, which ->
-                when (which) {
-                    0 -> changeBackgroundColor(Color.RED, "RED")
-                    1 -> changeBackgroundColor(Color.BLUE, "BLUE")
-                    2 -> changeBackgroundColor(Color.GREEN, "GREEN")
-                    3 -> pickImageLauncher.launch("image/*") // 開啟相簿
-                    4 -> changeBackgroundColor(Color.WHITE, "WHITE") // 恢復預設
+                // 3. 判斷使用者的選擇
+                if (which < colorDisplayNames.size) {
+                    // --- 使用者選擇了顏色 ---
+
+                    // 取得對應的顏色資源名稱 (例如 "bg_color_red")
+                    val colorResourceName = resources.getStringArray(R.array.background_color_resource_names)[which]
+
+                    // 根據資源名稱取得顏色 ID，再取得顏色值
+                    val colorResId = resources.getIdentifier(colorResourceName, "color", packageName)
+                    val colorValue = resources.getColor(colorResId, null)
+
+                    // 呼叫函式來更換背景並儲存設定
+                    changeBackgroundColor(colorValue, colorResourceName)
+
+                } else {
+                    // --- 使用者選擇了「從相簿選擇圖片」 ---
+                    pickImageLauncher.launch("image/*")
                 }
             }
             .show()
@@ -110,16 +119,20 @@ class MainActivity : AppCompatActivity() {
     private fun loadSavedBackground() {
         val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val type = sharedPref.getString("BG_TYPE", "COLOR")
-        val value = sharedPref.getString("BG_VALUE", "WHITE")
+        val value = sharedPref.getString("BG_VALUE", "bg_color_default")
 
         if (type == "COLOR") {
-            val color = when (value) {
-                "RED" -> Color.RED
-                "BLUE" -> Color.BLUE
-                "GREEN" -> Color.GREEN
-                else -> Color.WHITE
+            // ★ 修改這裡的邏輯 ★
+            try {
+                // 根據儲存的資源名稱 (value) 找到顏色 ID
+                val colorResId = resources.getIdentifier(value, "color", packageName)
+                // 從 ID 取得顏色值
+                val color = resources.getColor(colorResId, null)
+                mainLayout.setBackgroundColor(color)
+            } catch (e: Exception) {
+                // 如果找不到資源 (例如您刪除了 colors.xml 中的某個顏色)，就恢復預設
+                mainLayout.setBackgroundColor(Color.WHITE)
             }
-            mainLayout.setBackgroundColor(color)
         } else if (type == "IMAGE") {
             try {
                 val uri = Uri.parse(value)

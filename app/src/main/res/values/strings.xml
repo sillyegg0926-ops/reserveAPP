@@ -24,6 +24,75 @@
         <item>項目 8</item>
         <!-- 你可以根據需要修改或增加更多項目 -->
     </string-array>
+        <!-- ... 您其他的字串 ... -->        <!-- 背景顏色選項的顯示名稱 -->
+        <string-array name="background_color_display_names">
+            <item>溫柔紅</item>
+            <item>天空藍</item>
+            <item>薄荷綠</item>
+            <item>夢幻紫</item>
+            <item>活力橘</item>
+            <item>青藍色</item>
+            <item>檸檬黃</item>
+            <item>櫻花粉</item>
+            <item>優雅灰</item>
+            <item>深邃黑</item>
+            <item>莫蘭迪藍</item>
+            <item>莫蘭迪綠</item>
+            <item>莫蘭迪粉</item>
+            <item>莫蘭迪棕</item>
+            <item>薰衣草紫</item>
+            <item>奶油黃</item>
+            <item>寶寶藍</item>
+            <item>抹茶綠</item>
+            <item>海軍藍</item>
+            <item>酒紅色</item>
+            <item>閃耀金</item>
+            <item>橄欖綠</item>
+            <item>卡其色</item>
+            <item>陶土紅</item>
+            <item>沙色</item>
+            <item>石板灰</item>
+            <item>落日橘</item>
+            <item>海洋藍</item>
+            <item>森林綠</item>
+            <item>極光紫</item>
+            <item>恢復預設</item>
+        </string-array>
+
+        <!-- 與上面名稱對應的 color resource name -->
+        <string-array name="background_color_resource_names">
+            <item>bg_color_red</item>
+            <item>bg_color_blue</item>
+            <item>bg_color_green</item>
+            <item>bg_color_purple</item>
+            <item>bg_color_orange</item>
+            <item>bg_color_teal</item>
+            <item>bg_color_yellow</item>
+            <item>bg_color_pink</item>
+            <item>bg_color_grey</item>
+            <item>bg_color_dark</item>
+            <item>bg_morandi_blue</item>
+            <item>bg_morandi_green</item>
+            <item>bg_morandi_pink</item>
+            <item>bg_morandi_brown</item>
+            <item>bg_macaron_purple</item>
+            <item>bg_macaron_yellow</item>
+            <item>bg_macaron_blue</item>
+            <item>bg_macaron_green</item>
+            <item>bg_classic_navy</item>
+            <item>bg_classic_wine</item>
+            <item>bg_classic_gold</item>
+            <item>bg_classic_olive</item>
+            <item>bg_earth_khaki</item>
+            <item>bg_earth_terracotta</item>
+            <item>bg_earth_sand</item>
+            <item>bg_earth_slate</item>
+            <item>bg_gradient_sunset</item>
+            <item>bg_gradient_ocean</item>
+            <item>bg_gradient_forest</item>
+            <item>bg_gradient_aurora</item>
+            <item>bg_color_default</item>
+        </string-array>
 
 
 </resources>

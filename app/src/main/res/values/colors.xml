@@ -43,4 +43,62 @@
     <color name="example_7_yellow">#FFEB3B</color>
     <color name="example_1_selection_color">#FCCA3E</color>
     <color name="inactive_text_color">#BEBEBE</color>
+
+    <!-- 新增：可供選擇的背景顏色 -->
+    <color name="bg_color_red">#FF5252</color>
+    <color name="bg_color_blue">#448AFF</color>
+    <color name="bg_color_green">#69F0AE</color>
+    <color name="bg_color_purple">#E040FB</color>
+    <color name="bg_color_default">#FFFFFFFF</color>
+
+    <!-- ↓↓↓ 在這裡加入新顏色 ↓↓↓ -->
+    <color name="bg_color_orange">#FFAB40</color>   <!-- 活力橘 -->
+    <color name="bg_color_teal">#18FFFF</color>      <!-- 青藍色 -->
+    <color name="bg_color_yellow">#FFFF8D</color>    <!-- 檸檬黃 -->
+    <color name="bg_color_pink">#FF80AB</color>      <!-- 櫻花粉 -->
+    <color name="bg_color_grey">#BDBDBD</color>      <!-- 優雅灰 -->
+    <color name="bg_color_dark">#212121</color>
+
+    <!-- 新增加的 20 種顏色 -->
+    <!-- 莫蘭迪色系 -->
+    <color name="bg_morandi_blue">#6C83A2</color> <!-- 灰藍 -->
+    <color name="bg_morandi_green">#89A26C</color> <!-- 豆綠 -->
+    <color name="bg_morandi_pink">#D4A7A7</color> <!-- 藕粉 -->
+    <color name="bg_morandi_brown">#A2836C</color> <!-- 裸棕 -->
+
+    <!-- 馬卡龍色系 -->
+    <color name="bg_macaron_purple">#D1C4E9</color> <!-- 薰衣草紫 -->
+    <color name="bg_macaron_yellow">#FFF9C4</color> <!-- 奶油黃 -->
+    <color name="bg_macaron_blue">#B3E5FC</color> <!-- 寶寶藍 -->
+    <color name="bg_macaron_green">#C8E6C9</color> <!-- 抹茶綠 -->
+
+    <!-- 經典色系 -->
+    <color name="bg_classic_navy">#303F9F</color> <!-- 海軍藍 -->
+    <color name="bg_classic_wine">#880E4F</color> <!-- 酒紅色 -->
+    <color name="bg_classic_gold">#FFD700</color> <!-- 金色 -->
+    <color name="bg_classic_olive">#808000</color> <!-- 橄欖綠 -->
+
+    <!-- 大地色系 -->
+    <color name="bg_earth_khaki">#C2B280</color> <!-- 卡其色 -->
+    <color name="bg_earth_terracotta">#E2725B</color> <!-- 陶土紅 -->
+    <color name="bg_earth_sand">#F4A460</color> <!-- 沙色 -->
+    <color name="bg_earth_slate">#708090</color> <!-- 石板灰 -->
+
+    <!-- 漸層色系 (僅範例，漸層需用 shape drawable 實現，此處用中間色代表) -->
+    <color name="bg_gradient_sunset">#F57C00</color> <!-- 落日橘 -->
+    <color name="bg_gradient_ocean">#0288D1</color> <!-- 海洋藍 -->
+    <color name="bg_gradient_forest">#388E3C</color> <!-- 森林綠 -->
+    <color name="bg_gradient_aurora">#7B1FA2</color>
+
+
+    <!-- 應用程式基本顏色 -->
+    <!-- <color name="black">#FF000000</color> -->
+
+    <!-- <color name="white">#FFFFFFFF</color> -->
+
+
+    <!-- 基本顏色 (已整合) -->
+    <!-- <color name="white">#FFFFFFFF</color> -->
+
+    <!-- <color name="black">#FF000000</color> -->
 </resources>
