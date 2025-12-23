@@ -7,6 +7,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.HorizontalBarChart
+import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -103,6 +104,7 @@ class ChartActivity : AppCompatActivity() {
         val dataSet = BarDataSet(entries, "當月預約人數統計")
         dataSet.color = resources.getColor(R.color.blue_800)
         dataSet.valueTextColor = resources.getColor(R.color.example_5_page_bg_color)
+        dataSet.valueTextSize = 14f
 
         // 3. 將 DataSet 放入 BarData 物件 (套用您的樣式)
         val barData = BarData(dataSet)
@@ -117,6 +119,13 @@ class ChartActivity : AppCompatActivity() {
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.setDrawGridLines(false)
         xAxis.granularity = 1f
+
+        // --- ★★★ 新增：修改圖例 (Legend) 的字體大小 ★★★ ---
+        val legend = chart.legend
+        legend.textSize = 12f             // 設定圖例文字大小，您可以調整 16f
+        legend.textColor = resources.getColor(R.color.black) // 設定圖例文字顏色 (可選)
+        legend.form = Legend.LegendForm.SQUARE   // 設定圖例標示的形狀 (可選)
+        // ----------------------------------------------------
 
         chart.invalidate() // 刷新圖表
     }
@@ -143,11 +152,12 @@ class ChartActivity : AppCompatActivity() {
         val dataSet = BarDataSet(entries, "整年預約人數統計")
         dataSet.color = resources.getColor(R.color.example_6_month_bg_color)
         dataSet.valueTextColor = resources.getColor(R.color.example_5_page_bg_color)
+        dataSet.valueTextSize = 20f
 
         // 3. 將 DataSet 放入 BarData 物件 (套用您的樣式)
         val barData = BarData(dataSet)
         barData.barWidth = 0.3f
-        barData.setValueTextSize(10f)
+
 
         // 4. 將資料設定給圖表並更新
         chart.data = barData
@@ -176,6 +186,14 @@ class ChartActivity : AppCompatActivity() {
         chart.setTouchEnabled(true)
         chart.setPinchZoom(true)
         chart.setFitBars(true)
+
+
+        // --- ★★★ 新增：修改圖例 (Legend) 的字體大小 ★★★ ---
+        val legend = chart.legend
+        legend.textSize = 14f             // 設定圖例文字大小，您可以調整 16f
+        legend.textColor = resources.getColor(R.color.black) // 設定圖例文字顏色 (可選)
+        legend.form = Legend.LegendForm.SQUARE   // 設定圖例標示的形狀 (可選)
+        // ----------------------------------------------------
         chart.invalidate() // 刷新圖表
     }
 }
